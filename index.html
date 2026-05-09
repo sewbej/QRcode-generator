@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Generator QR</title>
+    <!-- Zostawiamy tylko bibliotekę do generowania kodów -->
+    <script src="qrcode.min.js"></script>
+    
+    <style>
+        body { 
+            font-family: sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px; 
+            margin: 0;
+            background: #f0f2f5; 
+            transition: background-color 0.4s ease;
+        }
+        
+        h1 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Kontener na pole tekstowe i przycisk */
+        #input-container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.0);
+            box-sizing: border-box;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: #000000;
+        }
+
+        button {
+            padding: 12px;
+            font-size: 1.1em;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        /* Kontener na wynik */
+        #result-container { 
+            margin-top: 20px; 
+            padding: 20px; 
+            background: white; 
+            border-radius: 10px; 
+            text-align: center; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            display: none; 
+            width: 100%; 
+            max-width: 400px; 
+            box-sizing: border-box;
+        }
+
+        #scan-result { 
+            font-size: 1.0em; 
+            display: block; 
+            color: #000;
+            word-break: break-all; /* Zapobiega wychodzeniu długiego tekstu poza ramkę */
+            margin-bottom: 15px;
+        }
+
+        #qrcode { 
+            display: flex; 
+            justify-content: center; 
+        }
+
+        #qrcode img { 
+            width: 150px !important; 
+            height: 150px !important; 
+        }
+    </style>
+</head>
+<body>
+    
+    <h1>Generator kodu QR</h1>
+
+    <div id="input-container">
+        <input type="text" id="text-input" placeholder="Imię i Nazwisko" onkeypress="handleKeyPress(event)">
+        
+    </div>
+
+    <div id="result-container">
+        <strong id="scan-result">---</strong>
+        <div id="qrcode"></div>
+    </div>
+
+    <script>
+        const textInput = document.getElementById('text-input');
+        const resultContainer = document.getElementById('result-container');
+        const scanResultText = document.getElementById('scan-result');
+        const qrContainer = document.getElementById('qrcode');
+
+        function generateQRCode() {
+            // Pobieramy tekst i usuwamy ewentualne białe znaki na początku i końcu
+            const text = textInput.value.trim();
+
+            if (!text) {
+                alert("Imię i Nazwisko");
+                return;
+            }
+
+            // Wibracja przy sukcesie
+            if (navigator.vibrate) {
+                navigator.vibrate(100);
+            }
+
+            // Zmiana tła na zielone jako sygnał wygenerowania
+            document.body.style.backgroundColor = "#d4edda"; 
+
+            // Pokaż wpisany tekst w bloku wynikowym
+            scanResultText.innerText = text;
+            resultContainer.style.display = 'block';
+
+            // Generowanie kodu QR
+            qrContainer.innerHTML = "";
+            new QRCode(qrContainer, {
+                text: text,
+                width: 150,
+                height: 150,
+                correctLevel: QRCode.CorrectLevel.H // Utrzymujemy najwyższą odporność na błędy
+            });
+            
+            // Po 1 sekundzie tło wraca do szarego
+            setTimeout(() => {
+                document.body.style.backgroundColor = "#f0f2f5";
+            }, 1000);
+        }
+
+        // Pozwala na zatwierdzanie tekstu przyciskiem Enter na klawiaturze
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                generateQRCode();
+            }
+        }
+    </script>
+</body>
+</html>

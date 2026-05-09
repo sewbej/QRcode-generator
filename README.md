@@ -1,2 +1,2 @@
-# QRcode-generator
-QRcode generator
+# hlz
+HLZ skaner
