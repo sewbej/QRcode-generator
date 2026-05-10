@@ -109,7 +109,7 @@
     <h1>Generator QR</h1>
 
     <div id="input-container">
-        <input type="text" id="text-input" placeholder="Imię i Nazwisko" onkeypress="handleKeyPress(event)">
+        <input type="text" id="text-input" placeholder="imię i nazwisko" onkeypress="handleKeyPress(event)">
         
     </div>
 
@@ -126,10 +126,10 @@
 
         function generateQRCode() {
             // Pobieramy tekst i usuwamy ewentualne białe znaki na początku i końcu
-            const text = textInput.value.trim();
+            const text = textInput.value.trim().toUpperCase();
 
             if (!text) {
-                alert("Imię i Nazwisko");
+                alert("Wpisz imię i nazwisko");
                 return;
             }
 
