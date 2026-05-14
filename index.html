@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Generator QR</title>
-    <!-- Nowa, stabilna biblioteka QRious -->
-    <script src="qrious.min.js"></script>
+    <!-- Najlepsza biblioteka do QR obsługująca UTF-8 i duże zbiory danych -->
+    <script src="qrcode.min.js"></script>
     
     <style>
         body { 
@@ -35,7 +35,7 @@
             background: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.0);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             box-sizing: border-box;
         }
 
@@ -47,27 +47,10 @@
             width: 100%;
             box-sizing: border-box;
             outline: none;
-            transition: border-color 0.3s ease;
         }
 
         input[type="text"]:focus {
-            border-color: #000000;
-        }
-
-        button {
-            padding: 12px;
-            font-size: 1.1em;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s ease;
-        }
-
-        button:hover {
-            background: #0056b3;
+            border-color: #007bff;
         }
 
         #result-container { 
@@ -80,15 +63,15 @@
             display: none; 
             width: 100%; 
             max-width: 400px; 
-            box-sizing: border-box;
         }
 
         #scan-result { 
-            font-size: 1.0em; 
+            font-size: 1.1em; 
             display: block; 
             color: #000;
-            word-break: break-all;
+            font-weight: bold;
             margin-bottom: 15px;
+            text-transform: uppercase;
         }
 
         #qrcode-container { 
@@ -96,10 +79,10 @@
             justify-content: center; 
         }
 
-        /* Ustawiamy wymiary płótna */
+        /* Canvas musi mieć responsywne wymiary */
         canvas {
-            width: 200px;
-            height: 200px;
+            width: 250px !important;
+            height: 250px !important;
         }
     </style>
 </head>
@@ -112,9 +95,8 @@
     </div>
 
     <div id="result-container">
-        <strong id="scan-result">---</strong>
+        <div id="scan-result"></div>
         <div id="qrcode-container">
-            <!-- QRious używa elementu canvas zamiast div -->
             <canvas id="qrcode"></canvas>
         </div>
     </div>
@@ -123,14 +105,7 @@
         const textInput = document.getElementById('text-input');
         const resultContainer = document.getElementById('result-container');
         const scanResultText = document.getElementById('scan-result');
-        const qrCanvas = document.getElementById('qrcode');
-
-        // Inicjalizujemy instancję QRious raz na zewnątrz
-        const qr = new QRious({
-            element: qrCanvas,
-            size: 200,
-            level: 'M' // Poziom Medium - idealny kompromis
-        });
+        const canvas = document.getElementById('qrcode');
 
         function generateQRCode() {
             const text = textInput.value.trim().toUpperCase();
@@ -140,17 +115,28 @@
                 return;
             }
 
-            if (navigator.vibrate) {
-                navigator.vibrate(100);
-            }
+            // Sygnał wibracyjny
+            if (navigator.vibrate) navigator.vibrate(100);
 
+            // Wizualne potwierdzenie
             document.body.style.backgroundColor = "#d4edda"; 
-
             scanResultText.innerText = text;
             resultContainer.style.display = 'block';
 
-            // Zaktualizowanie wartości w bibliotece QRious
-            qr.value = text;
+            // Generowanie kodu QR za pomocą biblioteki 'qrcode'
+            // Ta biblioteka automatycznie wykrywa UTF-8 i optymalizuje kod
+            QRCode.toCanvas(canvas, text, {
+                width: 500, // Wysoka rozdzielczość renderowania
+                margin: 2,
+                errorCorrectionLevel: 'M',
+                color: {
+                    dark: "#000000",
+                    light: "#ffffff"
+                }
+            }, function (error) {
+                if (error) console.error(error);
+                console.log('QR wygenerowany pomyślnie!');
+            });
             
             setTimeout(() => {
                 document.body.style.backgroundColor = "#ffffff";
