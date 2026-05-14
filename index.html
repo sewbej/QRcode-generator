@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Generator QR</title>
-    <!-- Zostawiamy tylko bibliotekę do generowania kodów -->
-    <script src="qrcode.min.js"></script>
+    <!-- Nowa, stabilna biblioteka QRious -->
+    <script src="qrious.min.js"></script>
     
     <style>
         body { 
@@ -26,7 +26,6 @@
             text-align: center;
         }
 
-        /* Kontener na pole tekstowe i przycisk */
         #input-container {
             width: 100%;
             max-width: 400px;
@@ -71,7 +70,6 @@
             background: #0056b3;
         }
 
-        /* Kontener na wynik */
         #result-container { 
             margin-top: 20px; 
             padding: 20px; 
@@ -89,18 +87,19 @@
             font-size: 1.0em; 
             display: block; 
             color: #000;
-            word-break: break-all; /* Zapobiega wychodzeniu długiego tekstu poza ramkę */
+            word-break: break-all;
             margin-bottom: 15px;
         }
 
-        #qrcode { 
+        #qrcode-container { 
             display: flex; 
             justify-content: center; 
         }
 
-        #qrcode img { 
-            width: 150px !important; 
-            height: 150px !important; 
+        /* Ustawiamy wymiary płótna */
+        canvas {
+            width: 200px;
+            height: 200px;
         }
     </style>
 </head>
@@ -110,22 +109,30 @@
 
     <div id="input-container">
         <input type="text" id="text-input" placeholder="imię i nazwisko" onkeypress="handleKeyPress(event)">
-        
     </div>
 
     <div id="result-container">
         <strong id="scan-result">---</strong>
-        <div id="qrcode"></div>
+        <div id="qrcode-container">
+            <!-- QRious używa elementu canvas zamiast div -->
+            <canvas id="qrcode"></canvas>
+        </div>
     </div>
 
     <script>
         const textInput = document.getElementById('text-input');
         const resultContainer = document.getElementById('result-container');
         const scanResultText = document.getElementById('scan-result');
-        const qrContainer = document.getElementById('qrcode');
+        const qrCanvas = document.getElementById('qrcode');
+
+        // Inicjalizujemy instancję QRious raz na zewnątrz
+        const qr = new QRious({
+            element: qrCanvas,
+            size: 200,
+            level: 'M' // Poziom Medium - idealny kompromis
+        });
 
         function generateQRCode() {
-            // Pobieramy tekst i usuwamy ewentualne białe znaki na początku i końcu
             const text = textInput.value.trim().toUpperCase();
 
             if (!text) {
@@ -133,38 +140,23 @@
                 return;
             }
 
-            // Wibracja przy sukcesie
             if (navigator.vibrate) {
                 navigator.vibrate(100);
             }
 
-            // Zmiana tła na zielone jako sygnał wygenerowania
             document.body.style.backgroundColor = "#d4edda"; 
 
-            // Pokaż wpisany tekst w bloku wynikowym
             scanResultText.innerText = text;
             resultContainer.style.display = 'block';
 
-            // Rozwiązanie problemu z polskimi znakami (UTF-8)
-            // Konwertujemy tekst na format bezpieczny dla tej biblioteki
-            const safeText = unescape(encodeURIComponent(text));
-
-            // Generowanie kodu QR
-            qrContainer.innerHTML = "";
-            new QRCode(qrContainer, {
-                text: safeText, // <-- tutaj przekazujemy naprawiony tekst
-                width: 200,
-                height: 200,
-                correctLevel: QRCode.CorrectLevel.H 
-            });
+            // Zaktualizowanie wartości w bibliotece QRious
+            qr.value = text;
             
-            // Po 1 sekundzie tło wraca do szarego
             setTimeout(() => {
                 document.body.style.backgroundColor = "#ffffff";
             }, 1000);
         }
 
-        // Pozwala na zatwierdzanie tekstu przyciskiem Enter na klawiaturze
         function handleKeyPress(event) {
             if (event.key === "Enter") {
                 generateQRCode();
