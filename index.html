@@ -145,13 +145,17 @@
             scanResultText.innerText = text;
             resultContainer.style.display = 'block';
 
+            // Rozwiązanie problemu z polskimi znakami (UTF-8)
+            // Konwertujemy tekst na format bezpieczny dla tej biblioteki
+            const safeText = unescape(encodeURIComponent(text));
+
             // Generowanie kodu QR
             qrContainer.innerHTML = "";
             new QRCode(qrContainer, {
-                text: text,
-                width: 150,
-                height: 150,
-                correctLevel: QRCode.CorrectLevel.H // Utrzymujemy najwyższą odporność na błędy
+                text: safeText, // <-- tutaj przekazujemy naprawiony tekst
+                width: 200,
+                height: 200,
+                correctLevel: QRCode.CorrectLevel.H 
             });
             
             // Po 1 sekundzie tło wraca do szarego
@@ -169,3 +173,5 @@
     </script>
 </body>
 </html>
+
+To jest kod generatora kodów QR. Nie zawsze on działa. Nie pokazuje kodu QR dla nazw ze znakiem diaktrycznym np: "Jaśkowiak". Lecz "Jaśkowiak A" już działa
