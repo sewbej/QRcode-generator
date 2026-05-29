@@ -4,53 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Generator QR</title>
-    <!-- Najlepsza biblioteka do QR obsługująca UTF-8 i duże zbiory danych -->
-    <script src="qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
     
     <style>
+        /* --- STYLE DLA EKRANU --- */
         body { 
             font-family: sans-serif; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             padding: 20px; 
-            margin: 0;
+            margin: 0; 
             background: #ffffff; 
-            transition: background-color 0.4s ease;
+            transition: background-color 0.4s ease; 
         }
-        
-        h1 {
-            font-size: 1.2em;
-            color: #333;
-            margin-bottom: 20px;
+        h1 { 
+            font-size: 1.2em; 
+            color: #333; 
+            margin-bottom: 20px; 
             text-align: center;
         }
-
-        #input-container {
-            width: 100%;
-            max-width: 400px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        #input-container { 
+            width: 100%; 
+            max-width: 400px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
             box-sizing: border-box;
         }
-
-        input[type="text"] {
-            padding: 12px;
-            font-size: 1em;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: 100%;
-            box-sizing: border-box;
+        input[type="text"] { 
+            padding: 12px; 
+            font-size: 1em; 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+            width: 100%; 
+            box-sizing: border-box; 
             outline: none;
         }
-
         input[type="text"]:focus {
             border-color: #007bff;
+        }
+        
+        .checkbox-container { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            font-size: 0.9em; 
+            color: #333; 
+            cursor: pointer; 
+        }
+        .checkbox-container input { 
+            width: 18px; 
+            height: 18px; 
+            cursor: pointer; 
+        }
+
+        button {
+            padding: 12px;
+            font-size: 1.1em;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+
+        .print-btn {
+            background: #28a745;
+            margin-top: 15px;
+            width: 100%;
+        }
+        .print-btn:hover {
+            background: #218838;
         }
 
         #result-container { 
@@ -63,26 +97,71 @@
             display: none; 
             width: 100%; 
             max-width: 400px; 
+            box-sizing: border-box;
         }
-
         #scan-result { 
             font-size: 1.1em; 
             display: block; 
-            color: #000;
-            font-weight: bold;
-            margin-bottom: 15px;
-            text-transform: uppercase;
+            color: #000; 
+            font-weight: bold; 
+            margin-bottom: 15px; 
+            text-transform: uppercase; 
+            word-break: break-all;
+        }
+        #qrcode-container {
+            display: flex;
+            justify-content: center;
+        }
+        canvas { 
+            width: 250px !important; 
+            height: 250px !important; 
         }
 
-        #qrcode-container { 
-            display: flex; 
-            justify-content: center; 
-        }
+        /* --- SPROSTOWANE STYLE DO DRUKU (Naprawa białej karty) --- */
+        @media print {
+            /* Czyścimy całe formatowanie okna i wymuszamy domyślny układ strony */
+            html, body {
+                background: #ffffff !important;
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+            }
+            
+            /* Całkowicie ukrywamy zbędne elementy */
+            h1, #input-container, .print-btn {
+                display: none !important;
+            }
+            
+            /* Kontener wyniku przestaje być wycentrowanym boksem ekranowym */
+            #result-container {
+                display: block !important;
+                visibility: visible !important;
+                box-shadow: none !important;
+                border: none !important;
+                background: transparent !important;
+                margin: 20px auto !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: none !important;
+                position: static !important;
+            }
 
-        /* Canvas musi mieć responsywne wymiary */
-        canvas {
-            width: 250px !important;
-            height: 250px !important;
+            /* Pomniejszenie czcionki do wydruku */
+            #scan-result {
+                font-size: 14px !important; 
+                color: #000000 !important;
+                margin-bottom: 10px !important;
+            }
+
+            /* Wymuszenie pomniejszenia kodu QR o połowę na wydruku */
+            canvas { 
+                width: 125px !important; 
+                height: 125px !important; 
+                display: block !important;
+                margin: 0 auto !important; /* Środkowanie kodu na kartce */
+            }
         }
     </style>
 </head>
@@ -91,7 +170,14 @@
     <h1>Generator QR</h1>
 
     <div id="input-container">
-        <input type="text" id="text-input" placeholder="imię i nazwisko" onkeypress="handleKeyPress(event)">
+        <input type="text" id="firstname-input" placeholder="imię" onkeypress="handleKeyPress(event)">
+        <input type="text" id="lastname-input" placeholder="nazwisko" onkeypress="handleKeyPress(event)">
+        
+        <label class="checkbox-container">
+            
+        </label>
+
+        <button onclick="generateQRCode()">GENERUJ</button>
     </div>
 
     <div id="result-container">
@@ -99,48 +185,47 @@
         <div id="qrcode-container">
             <canvas id="qrcode"></canvas>
         </div>
+        <button class="print-btn" onclick="window.print()">DRUKUJ</button>
     </div>
 
     <script>
-        const textInput = document.getElementById('text-input');
+        const firstnameInput = document.getElementById('firstname-input');
+        const lastnameInput = document.getElementById('lastname-input');
+        
         const resultContainer = document.getElementById('result-container');
         const scanResultText = document.getElementById('scan-result');
         const canvas = document.getElementById('qrcode');
 
         function generateQRCode() {
-            const text = textInput.value.trim().toUpperCase();
+            const firstname = firstnameInput.value.trim().toUpperCase();
+            const lastname = lastnameInput.value.trim().toUpperCase();
 
-            if (!text) {
-                alert("Wpisz imię i nazwisko");
+            if (!firstname || !lastname) {
+                alert("Wpisz zarówno imię, jak i nazwisko.");
                 return;
             }
 
-            // Sygnał wibracyjny
+            let text = `${firstname} ${lastname}`;
+
+
+
             if (navigator.vibrate) navigator.vibrate(100);
 
-            // Wizualne potwierdzenie
             document.body.style.backgroundColor = "#d4edda"; 
             scanResultText.innerText = text;
             resultContainer.style.display = 'block';
 
-            // Generowanie kodu QR za pomocą biblioteki 'qrcode'
-            // Ta biblioteka automatycznie wykrywa UTF-8 i optymalizuje kod
             QRCode.toCanvas(canvas, text, {
-                width: 500, // Wysoka rozdzielczość renderowania
+                width: 500,
                 margin: 2,
-                errorCorrectionLevel: 'M',
-                color: {
-                    dark: "#000000",
-                    light: "#ffffff"
-                }
+                errorCorrectionLevel: 'M'
             }, function (error) {
                 if (error) console.error(error);
-                console.log('QR wygenerowany pomyślnie!');
             });
             
             setTimeout(() => {
                 document.body.style.backgroundColor = "#ffffff";
-            }, 1000);
+            }, 300);
         }
 
         function handleKeyPress(event) {
@@ -148,6 +233,8 @@
                 generateQRCode();
             }
         }
+
+
     </script>
 </body>
 </html>
