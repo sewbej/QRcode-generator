@@ -107,6 +107,7 @@
             margin-bottom: 15px; 
             text-transform: uppercase; 
             word-break: break-all;
+            white-space: pre-line; /* Łamie linie tylko na ekranie/wydruku */
         }
         #qrcode-container {
             display: flex;
@@ -117,9 +118,8 @@
             height: 250px !important; 
         }
 
-        /* --- SPROSTOWANE STYLE DO DRUKU (Naprawa białej karty) --- */
+        /* --- STYLE DO DRUKU --- */
         @media print {
-            /* Czyścimy całe formatowanie okna i wymuszamy domyślny układ strony */
             html, body {
                 background: #ffffff !important;
                 display: block !important;
@@ -129,12 +129,10 @@
                 height: auto !important;
             }
             
-            /* Całkowicie ukrywamy zbędne elementy */
             h1, #input-container, .print-btn {
                 display: none !important;
             }
             
-            /* Kontener wyniku przestaje być wycentrowanym boksem ekranowym */
             #result-container {
                 display: block !important;
                 visibility: visible !important;
@@ -148,19 +146,18 @@
                 position: static !important;
             }
 
-            /* Pomniejszenie czcionki do wydruku */
             #scan-result {
                 font-size: 14px !important; 
                 color: #000000 !important;
                 margin-bottom: 10px !important;
+                white-space: pre-line !important;
             }
 
-            /* Wymuszenie pomniejszenia kodu QR o połowę na wydruku */
             canvas { 
                 width: 125px !important; 
                 height: 125px !important; 
                 display: block !important;
-                margin: 0 auto !important; /* Środkowanie kodu na kartce */
+                margin: 0 auto !important;
             }
         }
     </style>
@@ -174,7 +171,7 @@
         <input type="text" id="lastname-input" placeholder="nazwisko" onkeypress="handleKeyPress(event)">
         
         <label class="checkbox-container">
-            
+            <input type="checkbox" id="pin-checkbox"> USTAW PIN 
         </label>
 
         <button onclick="generateQRCode()">GENERUJ</button>
@@ -191,7 +188,7 @@
     <script>
         const firstnameInput = document.getElementById('firstname-input');
         const lastnameInput = document.getElementById('lastname-input');
-        
+        const pinCheckbox = document.getElementById('pin-checkbox');
         const resultContainer = document.getElementById('result-container');
         const scanResultText = document.getElementById('scan-result');
         const canvas = document.getElementById('qrcode');
@@ -205,17 +202,28 @@
                 return;
             }
 
-            let text = `${firstname}\n ${lastname}`;
+            // 1. Tekst wędrujący DO KODU QR (zawsze w jednym wierszu, rozdzielony spacjami)
+            let qrText = `${firstname} ${lastname}`;
 
+            // 2. Tekst wyświetlany NA EKRANIE i DO DRUKU (w osobnych wierszach)
+            let displayText = `${firstname}\n${lastname}`;
 
+            if (pinCheckbox.checked) {
+                const pin = Math.floor(100000 + Math.random() * 900000);
+                qrText = `${qrText} ${pin}`;
+                displayText = `${displayText}\n${pin}`;
+            }
 
             if (navigator.vibrate) navigator.vibrate(100);
 
             document.body.style.backgroundColor = "#d4edda"; 
-            scanResultText.innerText = text;
+            
+            // Wyświetlamy wersję wielowierszową
+            scanResultText.innerText = displayText;
             resultContainer.style.display = 'block';
 
-            QRCode.toCanvas(canvas, text, {
+            // Generujemy QR z wersji jednowierszowej (`qrText`)
+            QRCode.toCanvas(canvas, qrText, {
                 width: 500,
                 margin: 2,
                 errorCorrectionLevel: 'H'
@@ -234,7 +242,11 @@
             }
         }
 
-
+        pinCheckbox.addEventListener('change', () => {
+            if (firstnameInput.value.trim() && lastnameInput.value.trim()) {
+                generateQRCode();
+            }
+        });
     </script>
 </body>
 </html>
